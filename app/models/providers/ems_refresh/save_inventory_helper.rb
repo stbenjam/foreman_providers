@@ -195,8 +195,6 @@ module Providers
           hashes[:vms].blank?
         when Host
           hashes[:hosts].blank?
-        when EmsFolder
-          hashes[:folders].blank?
         end)
       end
     end

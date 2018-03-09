@@ -10,14 +10,7 @@ module Providers
         hashes = hashes_or_collections
 
         case ems
-        when EmsCloud                                           then save_ems_cloud_inventory(ems, hashes, target, disconnect)
-        when EmsInfra                                           then save_ems_infra_inventory(ems, hashes, target, disconnect)
-        when EmsPhysicalInfra                                   then save_ems_physical_infra_inventory(ems, hashes, target)
-        when ManageIQ::Providers::AutomationManager             then save_automation_manager_inventory(ems, hashes, target)
-        when ManageIQ::Providers::ConfigurationManager          then save_configuration_manager_inventory(ems, hashes, target)
-        when ManageIQ::Providers::ContainerManager              then save_ems_container_inventory(ems, hashes, target)
-        when ManageIQ::Providers::NetworkManager                then save_ems_network_inventory(ems, hashes, target)
-        when ManageIQ::Providers::StorageManager                then save_ems_storage_inventory(ems, hashes, target)
+        when Providers::InfraManager                            then save_ems_infra_inventory(ems, hashes, target, disconnect)
         end
 
         # Handle updates to the ext_management_system
