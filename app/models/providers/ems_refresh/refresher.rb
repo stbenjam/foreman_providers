@@ -1,6 +1,7 @@
 module Providers
   module EmsRefresh
     class Refresher
+      include ForemanProviders::Logging
 
       attr_accessor :ems_by_ems_id, :targets_by_ems_id
 
@@ -19,24 +20,43 @@ module Providers
           ems = ems_by_ems_id[ems_id]
           ems_refresh_start_time = Time.now
 
+          log_ems_target = format_ems_for_logging(ems)
+          _log.info("#{log_ems_target} Refreshing targets for EMS...")
+
           refresh_targets_for_ems(ems, targets)
           post_refresh_ems_cleanup(ems, targets)
+
+          _log.info("#{log_ems_target} Refreshing targets for EMS...Complete")
 
           ems.update_attributes(:last_refresh_error => nil, :last_refresh_date => Time.now.utc)
           post_refresh(ems, ems_refresh_start_time)
         end
+
+        _log.info("Refreshing all targets...Complete")
       end
 
       def preprocess_targets
       end
 
       def refresh_targets_for_ems(ems, targets)
+        log_ems_target = format_ems_for_logging(ems)
+
         targets_with_inventory = collect_inventory_for_targets(ems, targets)
         until targets_with_inventory.empty?
           target, inventory = targets_with_inventory.shift
 
+          _log.info("#{log_header} Refreshing target #{target.class} [#{target.name}] id [#{target.id}]...")
           parsed = parse_targeted_inventory(ems, target, inventory)
           save_inventory(ems, target, parsed)
+          _log.info "#{log_header} Refreshing target #{target.class} [#{target.name}] id [#{target.id}]...Complete"
+        end
+      rescue => e
+        _log.error("#{log_ems_target} Refresh failed")
+        _log.error(e.backtrace.join("\n"))
+        _log.error("#{log_ems_target} Unable to perform refresh for the following targets:")
+        targets.each do |target|
+          target = target.first if target.kind_of?(Array)
+          _log.error(" --- #{target.class} [#{target.name}] id [#{target.id}]")
         end
       end
 
@@ -67,6 +87,10 @@ module Providers
       end
 
       private
+
+      def format_ems_for_logging(ems)
+        "EMS: [#{ems.name}], id: [#{ems.id}]"
+      end
 
       def group_targets_by_ems(targets)
         non_ems_targets = targets.select { |t| !t.kind_of?(ExtManagementSystem) && t.respond_to?(:ext_management_system) }
