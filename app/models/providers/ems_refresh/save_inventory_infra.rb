@@ -46,7 +46,7 @@ module Providers
           return
         end
 
-        prev_relats = vmdb_relats(target)
+        #prev_relats = vmdb_relats(target)
 
         _log.info("#{log_header} Saving EMS Inventory...")
         if debug_trace
@@ -78,9 +78,8 @@ module Providers
 
         _log.info("#{log_header} Saving EMS Inventory...Complete")
 
-        new_relats = hashes_relats(hashes)
-        link_ems_inventory(ems, target, prev_relats, new_relats, disconnect)
-        remove_obsolete_switches
+        #new_relats = hashes_relats(hashes)
+        #link_ems_inventory(ems, target, prev_relats, new_relats, disconnect)
 
         ems
       end
@@ -138,7 +137,7 @@ module Providers
           h[:ems_cluster_id] = key_backup.fetch_path(:ems_cluster, :id)
 
           begin
-            raise MiqException::MiqIncompleteData if h[:invalid]
+            #raise MiqException::MiqIncompleteData if h[:invalid]
 
             found = find_host(h, ems.id)
 
@@ -181,8 +180,8 @@ module Providers
             # Set the power state
             found.state = key_backup[:power_state] unless key_backup[:power_state].nil?
 
-            link_habtm(found, key_backup[:storages], :storages, Storage, target.kind_of?(ExtManagementSystem) || target.kind_of?(Host))
-            save_child_inventory(found, key_backup, child_keys)
+            #link_habtm(found, key_backup[:storages], :storages, Storage, target.kind_of?(ExtManagementSystem) || target.kind_of?(Infra::Host))
+            #save_child_inventory(found, key_backup, child_keys)
 
             found.save!
             h[:id] = found.id
@@ -190,13 +189,11 @@ module Providers
             # If a host failed to process, mark it as invalid and log an error
             h[:invalid] = invalids_found = true
             name = h[:name] || h[:uid_ems] || h[:hostname] || h[:ipaddress] || h[:ems_ref]
-            if err.kind_of?(MiqException::MiqIncompleteData)
-              _log.warn("#{log_header} Processing Host: [#{name}] failed with error [#{err.class}: #{err}]. Skipping Host.")
-            else
-              raise if EmsRefresh.debug_failures
-              _log.error("#{log_header} Processing Host: [#{name}] failed with error [#{err.class}: #{err}]. Skipping Host.")
-              _log.log_backtrace(err)
-            end
+            #if err.kind_of?(MiqException::MiqIncompleteData)
+            #  _log.warn("#{log_header} Processing Host: [#{name}] failed with error [#{err.class}: #{err}]. Skipping Host.")
+            #else
+            raise if EmsRefresh.debug_failures
+            _log.error("#{log_header} Processing Host: [#{name}] failed with error [#{err.class}: #{err}]. Skipping Host.")
           ensure
             restore_keys(h, remove_keys, key_backup)
           end
@@ -367,15 +364,15 @@ module Providers
         found = nil
         if h[:ems_ref]
           _log.debug("EMS ID: #{ems_id} Host database lookup - ems_ref: [#{h[:ems_ref]}] ems_id: [#{ems_id}]")
-          found = Host.find_by(:ems_ref => h[:ems_ref], :ems_id => ems_id)
+          found = Infra::Host.find_by(:ems_ref => h[:ems_ref], :ems_id => ems_id)
         end
 
         if found.nil?
           if h[:hostname].nil? && h[:ipaddress].nil?
             _log.debug("EMS ID: #{ems_id} Host database lookup - name [#{h[:name]}]")
-            found = Host.where(:ems_id => ems_id).detect { |e| e.name.downcase == h[:name].downcase }
+            found = Infra::Host.where(:ems_id => ems_id).detect { |e| e.name.downcase == h[:name].downcase }
           elsif ["localhost", "localhost.localdomain", "127.0.0.1"].include_none?(h[:hostname], h[:ipaddress])
-            # host = Host.find_by_hostname(hostname) has a risk of creating duplicate hosts
+            # host = Infra:Host.find_by_hostname(hostname) has a risk of creating duplicate hosts
             # allow a deleted EMS to be re-added an pick up old orphaned hosts
             _log.debug("EMS ID: #{ems_id} Host database lookup - hostname: [#{h[:hostname]}] IP: [#{h[:ipaddress]}] ems_ref: [#{h[:ems_ref]}]")
             found = look_up_host(h[:hostname], h[:ipaddress], :ems_ref => h[:ems_ref])
@@ -386,10 +383,10 @@ module Providers
       end
 
       def look_up_host(hostname, ipaddr, opts = {})
-        h   = Host.where("lower(hostname) = ?", hostname.downcase).find_by(:ipaddress => ipaddr) if hostname && ipaddr
-        h ||= Host.find_by("lower(hostname) = ?", hostname.downcase)                             if hostname
-        h ||= Host.find_by(:ipaddress => ipaddr)                                                 if ipaddr
-        h ||= Host.find_by("lower(hostname) LIKE ?", "#{hostname.downcase}.%")                   if hostname
+        h   = Infra::Host.where("lower(hostname) = ?", hostname.downcase).find_by(:ipaddress => ipaddr) if hostname && ipaddr
+        h ||= Infra::Host.find_by("lower(hostname) = ?", hostname.downcase)                             if hostname
+        h ||= Infra::Host.find_by(:ipaddress => ipaddr)                                                 if ipaddr
+        h ||= Infra::Host.find_by("lower(hostname) LIKE ?", "#{hostname.downcase}.%")                   if hostname
 
         # If we're given an ems_ref or ems_id then ensure that the host
         # we looked-up does not have a different ems_ref and is not
