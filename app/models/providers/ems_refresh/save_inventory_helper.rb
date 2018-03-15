@@ -191,9 +191,9 @@ module Providers
       def hashes_of_target_empty?(hashes, target)
         hashes.blank? || (hashes[:storages].blank? &&
         case target
-        when VmOrTemplate
+        when Infra::VmOrTemplate
           hashes[:vms].blank?
-        when Host
+        when Infra::Host
           hashes[:hosts].blank?
         end)
       end

@@ -15,6 +15,7 @@ module Providers
     extend SaveInventoryOrchestrationStacks
     extend LinkInventory
     extend MetadataRelats
+    extend ForemanProviders::Logging
 
     def self.debug_trace
       false

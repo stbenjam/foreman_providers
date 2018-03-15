@@ -9,9 +9,7 @@ module Providers
         end
         hashes = hashes_or_collections
 
-        case ems
-        when Providers::InfraManager                            then save_ems_infra_inventory(ems, hashes, target, disconnect)
-        end
+        save_ems_infra_inventory(ems, hashes, target, disconnect)
 
         # Handle updates to the ext_management_system
         update_attributes!(ems, hashes[:ems], [:type]) unless hashes[:ems].nil?
@@ -56,7 +54,7 @@ module Providers
 
         # Query for all of the Vms once across all EMSes, to handle any moving VMs
         vms_uids = hashes.collect { |h| h[:uid_ems] }.compact
-        vms = VmOrTemplate.where(:uid_ems => vms_uids).to_a
+        vms = Infra::VmOrTemplate.where(:uid_ems => vms_uids).to_a
         disconnects_index = disconnects.index_by { |vm| vm }
         vms_by_uid_ems = vms.group_by(&:uid_ems)
         dup_vms_uids = (vms_uids.duplicates + vms.collect(&:uid_ems).duplicates).uniq.sort
@@ -123,9 +121,9 @@ module Providers
               # Set the raw power state
               found.raw_power_state = key_backup[:raw_power_state]
 
-              link_habtm(found, key_backup[:storages], :storages, Storage)
-              link_habtm(found, key_backup[:key_pairs], :key_pairs, ManageIQ::Providers::CloudManager::AuthKeyPair)
-              save_child_inventory(found, key_backup, child_keys)
+              #link_habtm(found, key_backup[:storages], :storages, Storage)
+              #link_habtm(found, key_backup[:key_pairs], :key_pairs, ManageIQ::Providers::CloudManager::AuthKeyPair)
+              #save_child_inventory(found, key_backup, child_keys)
 
               found.save!
               h[:id] = found.id
@@ -133,13 +131,8 @@ module Providers
               # If a vm failed to process, mark it as invalid and log an error
               h[:invalid] = invalids_found = true
               name = h[:name] || h[:uid_ems] || h[:ems_ref]
-              if err.kind_of?(MiqException::MiqIncompleteData)
-                _log.warn("#{log_header} Processing Vm: [#{name}] failed with error [#{err}]. Skipping Vm.")
-              else
-                raise if EmsRefresh.debug_failures
-                _log.error("#{log_header} Processing Vm: [#{name}] failed with error [#{err}]. Skipping Vm.")
-                _log.log_backtrace(err)
-              end
+              raise if EmsRefresh.debug_failures
+              _log.error("#{log_header} Processing Vm: [#{name}] failed with error [#{err}]. Skipping Vm.")
             ensure
               restore_keys(h, remove_keys, key_backup)
             end
@@ -151,7 +144,7 @@ module Providers
         vm_ids = hashes.flat_map { |h| !h[:invalid] && h.has_key_path?(:parent_vm, :id) ? [h[:id], h.fetch_path(:parent_vm, :id)] : [] }.uniq
         unless vm_ids.empty?
           _log.info("#{log_header} Updating genealogy connections.")
-          vms = VmOrTemplate.where(:id => vm_ids).index_by(&:id)
+          vms = Infra::VmOrTemplate.where(:id => vm_ids).index_by(&:id)
           hashes.each do |h|
             parent = vms[h.fetch_path(:parent_vm, :id)]
             child = vms[h[:id]]

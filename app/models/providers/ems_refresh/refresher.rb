@@ -45,10 +45,10 @@ module Providers
         until targets_with_inventory.empty?
           target, inventory = targets_with_inventory.shift
 
-          _log.info("#{log_header} Refreshing target #{target.class} [#{target.name}] id [#{target.id}]...")
+          _log.info("#{log_ems_target} Refreshing target #{target.class} [#{target.name}] id [#{target.id}]...")
           parsed = parse_targeted_inventory(ems, target, inventory)
           save_inventory(ems, target, parsed)
-          _log.info "#{log_header} Refreshing target #{target.class} [#{target.name}] id [#{target.id}]...Complete"
+          _log.info "#{log_ems_target} Refreshing target #{target.class} [#{target.name}] id [#{target.id}]...Complete"
         end
       rescue => e
         _log.error("#{log_ems_target} Refresh failed")
