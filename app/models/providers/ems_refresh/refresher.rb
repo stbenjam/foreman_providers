@@ -51,8 +51,7 @@ module Providers
           _log.info "#{log_ems_target} Refreshing target #{target.class} [#{target.name}] id [#{target.id}]...Complete"
         end
       rescue => e
-        _log.error("#{log_ems_target} Refresh failed")
-        _log.error(e.backtrace.join("\n"))
+        _log.error("#{log_ems_target} Refresh failed: #{e}\n#{e.backtrace.join("\n")}")
         _log.error("#{log_ems_target} Unable to perform refresh for the following targets:")
         targets.each do |target|
           target = target.first if target.kind_of?(Array)
