@@ -95,5 +95,9 @@ module Providers
     def refresher_klass
       self.class.parent::Refresher
     end
+
+    def refresh
+      Providers::EmsRefresh.refresh(self)
+    end
   end
 end
