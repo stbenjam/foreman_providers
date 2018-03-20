@@ -91,5 +91,9 @@ module Providers
       build_endpoint_by_role(options[:endpoint])
       build_authentication_by_role(options[:authentication])
     end
+
+    def refresher_klass
+      self.class.parent::Refresher
+    end
   end
 end

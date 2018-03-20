@@ -40,7 +40,8 @@ module Providers
               when t.respond_to?(:manager)               then t.manager
               else                                            t
               end
-        ems.class::Refresher
+
+        ems.refresher_klass
       end
 
       # Do the refreshes
