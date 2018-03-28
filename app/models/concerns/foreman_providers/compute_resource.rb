@@ -17,7 +17,7 @@ module ForemanProviders
 
     def destroy_provider
       provider_klass = foreman_type_to_provider_type.constantize
-      provider_klass.find_by(:hostname => URI(url).host).try(:destroy)
+      provider_klass.find_by(:name => name).try(:destroy)
     end
 
     def foreman_type_to_provider_type

@@ -36,8 +36,8 @@ module Providers
                         []
                       end
 
-        child_keys = [:operating_system, :hardware, :custom_attributes, :snapshots, :advanced_settings, :labels, :tags]
-        extra_infra_keys = [:host, :ems_cluster, :storage, :storages, :storage_profile, :raw_power_state, :parent_vm]
+        child_keys       = [:operating_system, :hardware]
+        extra_infra_keys = [:hardware, :custom_attributes, :snapshots, :advanced_settings, :labels, :tags, :host, :ems_cluster, :storage, :storages, :storage_profile, :raw_power_state, :parent_vm]
         extra_cloud_keys = [
           :resource_group,
           :flavor,
@@ -123,7 +123,7 @@ module Providers
 
               #link_habtm(found, key_backup[:storages], :storages, Storage)
               #link_habtm(found, key_backup[:key_pairs], :key_pairs, ManageIQ::Providers::CloudManager::AuthKeyPair)
-              #save_child_inventory(found, key_backup, child_keys)
+              save_child_inventory(found, key_backup, child_keys)
 
               found.save!
               h[:id] = found.id
@@ -199,7 +199,7 @@ module Providers
         # Only set a value if we do not have one and we have not collected scan metadata.
         # Otherwise an ems may not contain the proper value and we do not want to overwrite
         # the value collected during our metadata scan.
-        return if parent.kind_of?(Vm) && !(parent.drift_states.size.zero? || parent.operating_system.nil? || parent.operating_system.product_name.blank?)
+        return if parent.kind_of?(Infra::Vm) && !(parent.operating_system.nil? || parent.operating_system.product_name.blank?)
 
         save_inventory_single(:operating_system, parent, hash)
       end
