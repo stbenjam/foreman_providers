@@ -1,5 +1,5 @@
 module ForemanProviders
-  module ComputeResource
+  module ComputeResourceExtensions
     extend ActiveSupport::Concern
 
     included do

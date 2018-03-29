@@ -60,6 +60,7 @@ module ForemanProviders
       begin
         Host::Managed.send(:include, ForemanProviders::HostExtensions)
         HostsHelper.send(:include, ForemanProviders::HostsHelperExtensions)
+	ComputeResource.send(:include, ForemanProviders::ComputeResourceExtensions)
       rescue => e
         Rails.logger.warn "ForemanProviders: skipping engine hook (#{e})"
       end
