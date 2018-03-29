@@ -58,8 +58,7 @@ module ForemanProviders
     # Include concerns in this config.to_prepare block
     config.to_prepare do
       begin
-        Host::Managed.send(:include, ForemanProviders::HostExtensions)
-        HostsHelper.send(:include, ForemanProviders::HostsHelperExtensions)
+        Foreman::Model::Ovirt.include(ForemanProviders::ComputeResource)
       rescue => e
         Rails.logger.warn "ForemanProviders: skipping engine hook (#{e})"
       end
